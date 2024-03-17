@@ -246,7 +246,7 @@
                 row.appendChild(chargeCell);
 
                 var balCell = document.createElement("td");
-                balCell.textContent = battery.bal[j];
+                balCell.textContent = battery.bal[j]==78?0:1;
                 row.appendChild(balCell);
 
                 if (battery.bal[j] == 1) {

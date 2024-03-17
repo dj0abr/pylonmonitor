@@ -3,9 +3,9 @@ this thread handles mqtt messages
 */
 
 #include <thread>
+#include <unistd.h>
 #include "mqttthread.h"
 #include "fifo.h"
-#include "kmclib.h"
 
 MQTTTHREAD::MQTTTHREAD()
 {
@@ -25,6 +25,19 @@ bool MQTTTHREAD::init()
         return false;
     }
 
+/*
+    // activate this code if the broker required authentication
+    // Set username and password for authentication
+    const char* username = "your_username"; // Replace with your actual username
+    const char* password = "your_password"; // Replace with your actual password
+    int set_credentials = mosquitto_username_pw_set(mqttclient, username, password);
+    if (set_credentials != MOSQ_ERR_SUCCESS)
+    {
+        printf("Failed to set MQTT username and password\n");
+        mosquitto_destroy(mqttclient);
+        return false;
+    }
+*/
     // set callbacks
     mosquitto_connect_callback_set(mqttclient, MQTTTHREAD::on_connect);
     mosquitto_message_callback_set(mqttclient, MQTTTHREAD::on_message);

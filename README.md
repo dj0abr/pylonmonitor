@@ -10,8 +10,6 @@ Connect the Console connector of the master battery via an RS-232 to TTL (3,3v) 
 ## Install required libraries:
 run the script: prepare
 
-## Install the library: kmclib, available in my github repos
-
 ## Build the software:
 make clean<br>
 make<br>
@@ -42,6 +40,6 @@ see file: autostart.txt
 
 ## Using the pylontech battery monitor:
 1. via Web interface: open the IP of the Raspberry PI in the browser<br>
-2. via MQTT: configure the IP address of the MQTT broker in file: mqttthread.h. The topic name can be configure in readbatt.h. These settings will be done via webinterface in a later version of this software. This MQTT client does not use password or authentication. If your MQTT broker requires it, you need to add it to this code.
+2. via MQTT: configure the IP address of the MQTT broker in file: mqttthread.h. The topic name can be configure in readbatt.h. These settings will be done via webinterface in a later version of this software. This MQTT client does not use password or authentication. If your MQTT broker requires it, you need to activate it in file: mqttthred.cpp, function init().
 
 ![Screenshot of Pylontech Battery Monitor](pics/screenshot.png)

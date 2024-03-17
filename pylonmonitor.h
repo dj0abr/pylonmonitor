@@ -4,10 +4,11 @@
 #include <string>
 
 void exit_program();
-char *ownIP();   // this is part of kmclib, but not declared in kmclib.h, so we do it here
+char *ownIP();
 void copyFile();
 
 extern std::string myLocalIP;
 extern int mqttfifo;
+extern int keeprunning;
 
 #endif // _PYLONMONITOR_H_

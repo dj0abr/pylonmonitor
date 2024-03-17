@@ -30,11 +30,14 @@ Battery Volt Curr Tempr Base State  Volt. State Curr. State Temp. State SOC  Cou
  pylon>
 */
 
+#include <termios.h>
 #include "pylonmonitor.h"
 #include "readbatt.h"
+#include "serial.h"
 #include <thread>
-#include <kmclib.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <string.h>
 #include <fstream>
 #include <iostream>
 #include <jansson.h>
@@ -43,7 +46,6 @@ Battery Volt Curr Tempr Base State  Volt. State Curr. State Temp. State SOC  Cou
 READBATT::READBATT()
 {
     // initialize and open the RPI's internal serial interface
-    // (this is part of kmclib)
     // this uses the primary serial interface on the RPI board
     // take care of the comments in pylonmonitor.cpp: remapping of serial port
     // the serial console must be switched OFF
