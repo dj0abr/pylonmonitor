@@ -1,0 +1,2 @@
+sudo apt-get -y update
+sudo apt-get -y install libi2c-dev fontconfig ttf-mscorefonts-installer libfreetype6-dev build-essential apache2 php libboost-dev libjansson libmosquitto

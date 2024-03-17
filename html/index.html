@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pylontech Battery Information</title>
+    <style>
+    body {
+        background-color: #000;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+        .title { 
+            font-size: 48px; 
+            text-shadow: gray 4px 4px 4px; 
+            margin: 0px 50px; 
+            text-align: center;
+        }
+        .timecontainer {
+            text-align: center;
+            padding-left: 10px;
+            margin-top: 20px;
+            background-color: black;
+        }
+    
+        .table-container {
+            display: inline-block;
+            margin-right: 4px;
+            margin-top: 4px;
+            vertical-align: top;
+        }
+    
+        .battery-table {
+            border-collapse: collapse;
+        }
+    
+        .battery-table th,
+        .battery-table td {
+            border: 1px solid white;
+            padding: 4px;
+            text-align: center;
+            font-size: 16px; /* Increased font size for table cells */
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        }
+    
+        .battery-table th {
+            background-color: #004000;
+            color: white;
+            font-weight: bold; /* Added font-weight to make the table headers bold */
+        }
+    
+        .battery-table tr:nth-child(2n) {
+            background-color: #343434;
+        }
+    
+        .battery-table tr:nth-child(2n+1) {
+            background-color: #101010;
+        }
+    
+        .cellinfo { 
+            font-family:verdana; font-size:16px; color:rgb(255, 255, 255); font-weight: bold; text-align:left;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .gph {
+            background-color: #000000;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .gph-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .mytitle {
+            text-align: center;
+            background-color: #404040;
+            font-family: "Helvetica", sans-serif;
+            font-size: 2.0vw;
+            font-weight: bold;
+            }
+    </style>
+</head>
+<body>
+    
+    <div class="sticky-header" style="padding-bottom: 10px;">
+        <div id="mytitle" class="mytitle">Pylontech Battery Monitor</div>
+    </div>
+    <div class="timecontainer">
+        <div id="battery-container"></div> 
+    </div>
+    <div class="gph-container">
+        <div id="cellV" class="cellinfo"></div>
+        <canvas id="akkugph" class="gph"></canvas>
+        <div id="cellS" class="cellinfo"></div>
+        <canvas id="akkusoc" class="gph"></canvas>
+    </div>
+</body>
+    
+<script>
+    
+
+    function fetchBatteryInfo() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "./wxdata/batteryinfo.json", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                displayBatteryInfo(data);
+            } else if (xhr.readyState === XMLHttpRequest.DONE) {
+                console.log("Error fetching battery information:", xhr.status);
+            }
+        };
+        xhr.send();
+    }
+
+    function displayBatteryInfo(data) 
+    {
+        // create a 2dim array "battery" to store
+        if(battfirst == 1) {
+            for(var i=0; i<16; i++)
+            {
+                batt_volt[i] = [];
+                batt_soc[i] = [];
+                batt_charge[i] = [];
+            }
+            battfirst = 0;
+        }
+
+        var container = document.getElementById("battery-container");
+        container.innerHTML = ""; // Clear previous content
+
+        battanz = 0;
+        for (var i = 0; i < data.length; i++) {
+            var battery = data[i];
+
+            // check if battery available
+            if(battery.voltage[0] == 0) continue;
+
+            var tableContainer = document.createElement("div");
+            tableContainer.classList.add("table-container");
+
+            var table = document.createElement("table");
+            table.classList.add("battery-table");
+
+            // Create additional header line
+            var additionalHeaderRow = document.createElement("tr");
+            var additionalHeaderCell = document.createElement("th");
+            additionalHeaderCell.setAttribute("colspan", "6");
+            var curr = "Akku " + (battery.battery + 1) + " - Charge Cur: " + battery.current + " A";
+            if(battery.current < 0) {
+                curr = "Akku " + (battery.battery + 1) + " - Discharge Cur: " + battery.current + " A";
+                additionalHeaderCell.style.backgroundColor = 'red';
+            }
+            else if(battery.current == 0) {
+                curr = "Akku " + (battery.battery + 1);
+                additionalHeaderCell.style.backgroundColor = 'black';
+            }
+            additionalHeaderCell.textContent = curr;
+            additionalHeaderRow.appendChild(additionalHeaderCell);
+            table.appendChild(additionalHeaderRow);
+
+            // Create table headers - column names
+            var tableHeaders = document.createElement("tr");
+            var headerNames = ["Voltage", "Temp.", "SoC", "Charge", "Bal"];
+
+            if (i === 0) {
+                // Add "Cell Index" header only for the first table
+                var cellIndexHeader = document.createElement("th");
+                cellIndexHeader.textContent = "Zelle";
+                tableHeaders.appendChild(cellIndexHeader);
+            }
+
+            for (var j = 0; j < headerNames.length; j++) {
+                var th = document.createElement("th");
+                th.textContent = headerNames[j];
+                tableHeaders.appendChild(th);
+            }
+
+            table.appendChild(tableHeaders);
+
+            // Create table headers - units
+            var unitHeaders = document.createElement("tr");
+            var unitNames = ["V", "°C", "%", "Ah", ""];
+
+            if (i === 0) {
+                // Add empty cell for the "Cell Index" header of the unit line
+                var emptyCell = document.createElement("td");
+                unitHeaders.appendChild(emptyCell);
+            }
+
+            for (var j = 0; j < unitNames.length; j++) {
+                var th = document.createElement("th");
+                th.textContent = unitNames[j];
+                unitHeaders.appendChild(th);
+            }
+
+            table.appendChild(unitHeaders);
+
+            let sum_volt = 0;
+            let mid_temp = 0;
+            let mid_soc = 0;
+            let mid_chrg = 0;
+
+            // Populate the table with battery data
+            if (i === 0) cellanz = 0;
+            for (var j = 0; j < battery.voltage.length; j++) {
+                var row = document.createElement("tr");
+
+                if (i === 0) {
+                    // Add "Cell Index" cell only for the first table
+                    var cellIndexCell = document.createElement("td");
+                    cellIndexCell.textContent = (j+1);
+                    row.appendChild(cellIndexCell);
+                    cellanz++;
+                }
+
+                var voltageCell = document.createElement("td");
+                batt_volt[battery.battery][j] = battery.voltage[j];
+                sum_volt += batt_volt[battery.battery][j];
+                voltageCell.textContent = battery.voltage[j].toFixed(3);
+                row.appendChild(voltageCell);
+
+                var temperatureCell = document.createElement("td");
+                mid_temp += battery.temperature[j];
+                temperatureCell.textContent = battery.temperature[j].toFixed(1);
+                row.appendChild(temperatureCell);
+
+                var socCell = document.createElement("td");
+                batt_soc[battery.battery][j] = battery.SoC[j];
+                mid_soc += batt_soc[battery.battery][j];
+                socCell.textContent = battery.SoC[j];
+                row.appendChild(socCell);
+
+                var chargeCell = document.createElement("td");
+                batt_charge[battery.battery][j] = battery.charge[j];
+                mid_chrg += batt_charge[battery.battery][j];
+                chargeCell.textContent = battery.charge[j].toFixed(3);
+                row.appendChild(chargeCell);
+
+                var balCell = document.createElement("td");
+                balCell.textContent = battery.bal[j];
+                row.appendChild(balCell);
+
+                if (battery.bal[j] == 1) {
+                    row.style.backgroundColor = "red";
+                }
+
+                table.appendChild(row);
+
+                if(battery.battery > battanz) battanz = battery.battery;
+            }
+
+            var row = document.createElement("tr");
+            row.style.backgroundColor = 'darkgreen';
+            if (i === 0) {
+                // Add "Cell Index" cell only for the first table
+                var cellIndexCell = document.createElement("td");
+                cellIndexCell.style.fontWeight = 'bold';
+                cellIndexCell.textContent = "Sum:";
+                row.appendChild(cellIndexCell);
+            }
+
+            var voltageCell = document.createElement("td");
+            voltageCell.style.fontWeight = 'bold';
+            voltageCell.textContent = sum_volt.toFixed(3);
+            row.appendChild(voltageCell);
+
+            var temperatureCell = document.createElement("td");
+            temperatureCell.style.fontWeight = 'bold';
+            temperatureCell.textContent = (mid_temp/cellanz).toFixed(1);
+            row.appendChild(temperatureCell);
+
+            var socCell = document.createElement("td");
+            socCell.style.fontWeight = 'bold';
+            socCell.textContent = (mid_soc/cellanz).toFixed(0);
+            row.appendChild(socCell);
+
+            var chargeCell = document.createElement("td");
+            chargeCell.style.fontWeight = 'bold';
+            chargeCell.colSpan = 2;
+            chargeCell.textContent = ((mid_chrg/cellanz)*sum_volt/1000).toFixed(3) + " kWh";
+            row.appendChild(chargeCell);
+
+            tableContainer.appendChild(table);
+            container.appendChild(tableContainer);
+            table.appendChild(row);
+        }
+
+        battanz++;
+        showData();
+    }
+
+    var batt_volt = [];
+    var batt_soc = [];
+    var batt_charge = [];
+    var battfirst = 1;
+    var battanz = 0;
+    var cellanz = 0;
+
+    var minVvolt = 10000;
+    var maxVvolt = -10000;
+    var minSoC = 10000;
+    var maxSoC = -10000;
+
+
+    function showData()
+    {
+/*          for(var b=0; b<battanz; b++)
+        {
+            for(var c=0; c<cellanz; c++)
+            {
+                console.log("bat:" + b + " cell:" + c + " volt:" + batt_volt[b][c] + " soc:" + batt_soc[b][c]);
+            }
+        }
+*/
+
+        // calculate kWh of the complete battery pack
+
+        var total = 0;
+        for(var b=0; b<battanz; b++)
+        {
+            for(var c=0; c<cellanz; c++)
+            {
+                //console.log("bat:" + b + " cell:" + c + " volt:" + batt_volt[b][c] + " soc:" + batt_soc[b][c]);
+                var kWh = batt_volt[b][c] * batt_charge[b][c];
+                total += kWh;
+            }
+        }
+
+        // calculate min max values
+        minVvolt = 10000;
+        maxVvolt = -10000;
+        minSoC = 10000;
+        maxSoC = -10000;
+        for(var b=0; b<battanz; b++)
+        {
+            for(var c=0; c<cellanz; c++)
+            {
+                var volt = batt_volt[b][c];
+                var soc = batt_soc[b][c];
+
+                if(volt > maxVvolt) maxVvolt = volt;
+                if(volt < minVvolt) minVvolt = volt;
+                if(soc > maxSoC) maxSoC = soc;
+                if(soc < minSoC) minSoC = soc;
+            }
+        }
+        var diffVolt = maxVvolt - minVvolt;
+        diffVolt *= 1000;   // mV
+
+        var titleElement = document.getElementById("mytitle");
+        var titleText = "Pylontech Battery Monitor (" + (Number(total)/1000).toFixed(3) + " kWh)";
+        titleElement.innerHTML = titleText;
+
+        document.getElementById("cellV").innerHTML = "Cell voltages: MIN/MAX = " + minVvolt + " / " + maxVvolt + " V  Difference = " + diffVolt.toFixed(0) +" mV";
+        document.getElementById("cellS").innerHTML = "MIN/MAX: Cell - SoC  = " + minSoC + " / " + maxSoC + " %";
+
+        showGPH();
+        showSOC();
+    }
+
+    function drawline(ctx,xs,ys,xe,ye, color)
+    {
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = color; // i.e. '#000000';
+        ctx.moveTo(xs,ys);
+        ctx.lineTo(xe,ye);
+        ctx.stroke();
+    }
+
+    function drawTextBG(ctx, txt, font, x, y, col) 
+    {
+        ctx.font = font;
+        ctx.fillStyle = col; //'#000';
+        ctx.fillText(txt, x, y);
+    }
+
+    function showGPH()
+    {
+        var canvas = document.getElementById("akkugph");
+
+        // setze interne Canvas Groesse damit Texte korrekt dargestellt werden
+        canvas.width = 260 * battanz+100;
+        canvas.height = 100;
+
+        var ctx = canvas.getContext('2d');
+        ctx.font = "30px Arial";
+        w = canvas.width;
+        h = canvas.height;
+
+        // schaffe etwas Platz oben und unten
+        // und normiere die Hilslinie auf 1/100 Volt
+        minVvolt = Number(minVvolt) - 0.05;
+        minVvolt = Math.floor(Number(minVvolt)*100) / 100;
+
+        maxVvolt = Number(maxVvolt) + 0.05;
+        maxVvolt = Math.floor(Number(maxVvolt)*100) / 100;
+
+        // zeichne Balken
+        var bx = 30;    // start X links
+        var bw = 13;    // Balkenbreite
+        var x = bx;
+        for(var bat=0; bat<battanz; bat++)
+        {
+            for(c=0; c<cellanz; c++)
+            {
+                var v = batt_volt[bat][c];
+                col = '#8080ff';
+                if(bat == 1) col = '#60d060';
+                if(bat == 2) col = '#80c0c0';
+                if(bat == 3) col = '#c08080';
+                if(bat == 4) col = '#80c080';
+                if(bat == 5) col = '#c0c080';
+                if(bat == 6) col = '#c06060';
+                if(bat == 7) col = '#60a0d0';
+                balken(ctx,x,v,bw,col,c);
+                x += bw+5;
+            }
+        }
+
+        // Spannungen
+        drawline(ctx,0,100+scaley(minVvolt),w,100+scaley(minVvolt),'#a0a0a0');
+        drawline(ctx,0,100+scaley(maxVvolt),w,100+scaley(maxVvolt),'#a0a0a0');
+
+        drawTextBG(ctx,minVvolt+"V","16px arial,serif",1,100+scaley(minVvolt)-4,'#ffffff');
+        drawTextBG(ctx,maxVvolt+"V","16px arial,serif",1,100+scaley(maxVvolt)+16,'#ffffff');
+    }
+
+    function scaley(val)
+    {
+        var p = (maxVvolt - val)*80/(maxVvolt-minVvolt)+10;
+        p = 100-p;
+
+        return -p;
+    }
+
+
+    function balken(ctx, x, val, w, col,cell)
+    {
+        ctx.fillStyle = col;
+        ctx.fillRect(x, 100, w, scaley(val));
+        if(cell < 9)
+            drawTextBG(ctx,cell+1,"10px arial,serif",x+7,100+scaley(minVvolt)+9,'#0000ff');
+        else
+            drawTextBG(ctx,cell+1,"10px arial,serif",x+3,100+scaley(minVvolt)+9,'#0000ff');
+    }
+
+    function showSOC()
+    {
+        var canvas = document.getElementById("akkusoc");
+
+        // setze interne Canvas Groesse damit Texte korrekt dargestellt werden
+        canvas.width = 260 * battanz+100;
+        canvas.height = 100;
+
+        var ctx = canvas.getContext('2d');
+        ctx.font = "30px Arial";
+        w = canvas.width;
+        h = canvas.height;
+
+        // schaffe etwas Platz oben und unten
+        // und normiere die Hilslinie auf 10%
+        minSoC = Number(minSoC) - 5;
+        minSoC = Math.floor(Number(minSoC)/10) * 10;
+
+        maxSoC = Number(maxSoC) + 5;
+        maxSoC = Math.floor((Number(maxSoC)+10)/10) * 10;
+
+        // zeichne Balken
+        var bx = 30;    // start X links
+        var bw = 13;    // Balkenbreite
+        var x = bx;
+        for(var bat=0; bat<battanz; bat++)
+        {
+            for(c=0; c<cellanz; c++)
+            {
+                var v = batt_soc[bat][c];
+                col = '#8080ff';
+                if(bat == 1) col = '#60d060';
+                if(bat == 2) col = '#80c0c0';
+                if(bat == 3) col = '#c08080';
+                if(bat == 4) col = '#80c080';
+                if(bat == 5) col = '#c0c080';
+                if(bat == 6) col = '#c06060';
+                if(bat == 7) col = '#60a0d0';
+                balken_soc(ctx,x,v,bw,col,c);
+                x += bw+5;
+            }
+        }
+
+        // Spannungen
+        drawline(ctx,0,100+scaley_soc(minSoC),w,100+scaley_soc(minSoC),'#a0a0a0');
+        drawline(ctx,0,100+scaley_soc(maxSoC),w,100+scaley_soc(maxSoC),'#a0a0a0');
+
+        drawTextBG(ctx,minSoC+"%","16px arial,serif",1,100+scaley_soc(minSoC)-4,'#ffffff');
+        drawTextBG(ctx,maxSoC+"%","16px arial,serif",1,100+scaley_soc(maxSoC)+16,'#ffffff');
+    }
+
+    function scaley_soc(val)
+    {
+        var p = (maxSoC - val)*80/(maxSoC-minSoC)+10;
+        p = 100-p;
+
+        return -p;
+    }
+
+
+    function balken_soc(ctx, x, val, w, col,cell)
+    {
+        ctx.fillStyle = col;
+        ctx.fillRect(x, 100, w, scaley_soc(val));
+        if(cell < 9)
+            drawTextBG(ctx,cell+1,"10px arial,serif",x+7,100+scaley_soc(minSoC)+9,'#0000ff');
+        else
+            drawTextBG(ctx,cell+1,"10px arial,serif",x+3,100+scaley_soc(minSoC)+9,'#0000ff');
+    }
+
+    // Function to get the timestamp by name
+    function getTimestampByName(data, name) {
+        let object = data.find(item => item.Name === name);
+        
+        if (object) {
+            return object["last heard"];
+        } else {
+            return '?';
+        }
+    }
+
+    function resizeGPHCanvas() {
+        // Set the canvas width to window's width
+        document.getElementById('akkugph').width = window.innerWidth;
+        document.getElementById('akkusoc').width = window.innerWidth;
+    }
+    
+    function initpage()
+    {
+
+        // Initial resize
+        resizeGPHCanvas();
+        window.addEventListener('resize', resizeGPHCanvas);
+
+        fetchBatteryInfo();
+        setInterval(fetchBatteryInfo, 1000); // Refresh every  secons
+    }
+
+    initpage();
+</script>
+</html>
