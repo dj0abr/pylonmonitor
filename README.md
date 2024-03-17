@@ -13,25 +13,25 @@ run the script: prepare
 ## Install the library: kmclib, available in my github repos
 
 ## Build the software:
-make clean
-make
+make clean<br>
+make<br>
 this build the executable file: pylonmonitor
 
 ## Run the software:
 run as root:  ./pylonmonitor
 
 ## Raspi supporting WLAN (RPI3, 4 and Zero-W) need remapping of serial port:
-1. Switch-off serial login shell (important !!!, double check)
-    sudo raspi-config
-    InterfaceOptions - Serial Port:
-    login shell: NO
-    hardware enabled: YES
-2. map primary serial port to connector pins
-    sudo nano /boot/config.txt and add at the end:
-    dtoverlay=miniuart-bt
-3. Reboot and check if ok:
-    ls -l /dev/serial*
-    serial0 must map to ttyAMA0
+1. Switch-off serial login shell (important !!!, double check)<br>
+    sudo raspi-config<br>
+    InterfaceOptions - Serial Port:<br>
+    login shell: NO<br>
+    hardware enabled: YES<br>
+2. map primary serial port to connector pins<br>
+    sudo nano /boot/config.txt and add at the end:<br>
+    dtoverlay=miniuart-bt<br>
+3. Reboot and check if ok:<br>
+    ls -l /dev/serial*<br>
+    serial0 must map to ttyAMA0<br>
 4. to use ttyAMA0 the program must be running as root
 
 ## Number of Pylontech Batteries:
@@ -41,5 +41,5 @@ this software detects the number of batteries automatically
 see file: autostart.txt
 
 ## Using the pylontech battery monitor:
-1. via Web interface: open the IP of the Raspberry PI in the browser
+1. via Web interface: open the IP of the Raspberry PI in the browser<br>
 2. via MQTT: configure the IP address of the MQTT broker in file: mqttthread.h. The topic name can be configure in readbatt.h. These settings will be done via webinterface in a later version of this software. This MQTT client does not use password or authentication. If your MQTT broker requires it, you need to add it to this code.
