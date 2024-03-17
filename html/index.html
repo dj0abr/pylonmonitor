@@ -154,13 +154,13 @@
             var additionalHeaderRow = document.createElement("tr");
             var additionalHeaderCell = document.createElement("th");
             additionalHeaderCell.setAttribute("colspan", "6");
-            var curr = "Akku " + (battery.battery + 1) + " - Charge Cur: " + battery.current + " A";
+            var curr = "Batt " + (battery.battery + 1) + " - Charge Cur: " + battery.current + " A";
             if(battery.current < 0) {
-                curr = "Akku " + (battery.battery + 1) + " - Discharge Cur: " + battery.current + " A";
+                curr = "Batt " + (battery.battery + 1) + " - Discharge Cur: " + battery.current + " A";
                 additionalHeaderCell.style.backgroundColor = 'red';
             }
             else if(battery.current == 0) {
-                curr = "Akku " + (battery.battery + 1);
+                curr = "Batt " + (battery.battery + 1);
                 additionalHeaderCell.style.backgroundColor = 'black';
             }
             additionalHeaderCell.textContent = curr;
@@ -174,7 +174,7 @@
             if (i === 0) {
                 // Add "Cell Index" header only for the first table
                 var cellIndexHeader = document.createElement("th");
-                cellIndexHeader.textContent = "Zelle";
+                cellIndexHeader.textContent = "Cell";
                 tableHeaders.appendChild(cellIndexHeader);
             }
 
