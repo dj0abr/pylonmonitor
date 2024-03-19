@@ -15,3 +15,4 @@ extern string publishTopic;
 extern string responseTopic;
 extern string locationTopic;
 extern string deviceTopic;
+extern bool mqtt_changed;

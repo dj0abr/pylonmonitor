@@ -232,7 +232,7 @@ void READBATT::processBatData()
     const char *batteryString = s.c_str();
 
     //printf("RXed:\n{%s}\n",batteryString);
-    printf("installed batts: %d\n",battnumber);
+    //printf("installed batts: %d\n",battnumber);
     // Split string by lines
     char *line = strtok((char *)batteryString, "\n");
     int cellCount = 0;

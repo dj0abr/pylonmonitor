@@ -101,8 +101,19 @@ int main(int argc, char *argv[])
     // start the battery monitor thread
     READBATT readbatt;
 
+    time_t lastMQTTConnectionTime = 0;
     while(keeprunning)
     {
+        // connect or reconnect MQTT (not faster than every 2 seconds)
+        if(mqttthread.isConnected() == false || mqtt_changed) {
+            time_t now = time(NULL);
+            if (now - lastMQTTConnectionTime >= 2) {
+                mqttthread.init();
+                lastMQTTConnectionTime = now;
+                mqtt_changed = false;
+            }
+        }
+
         mqttthread.publish();   // publish new messages
         usleep(10000);
     }

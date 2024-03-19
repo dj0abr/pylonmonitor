@@ -11,13 +11,15 @@ using std::string;
 
 string ssid = "*";
 string password = "";
-string mqttBrokerIP = "192.168.x.y";
+string mqttBrokerIP = "1.2.3.4";
 string brokerusername;
 string brokerpassword;
 string publishTopic = "kmpub";
 string responseTopic = "kmcmd";
 string locationTopic = "Solaranlage";
 string deviceTopic = "Pylontech Akku Monitor";
+
+bool mqtt_changed = false;
 
 string getMQTTtopic() 
 {
@@ -120,9 +122,11 @@ bool readConfigFromJson()
         return false; // Failed to parse JSON
     }
 
+    static string last_brokerIP;
+    static string last_brokerusername;
+    static string last_brokerpassword;
+
     // Extract values
-    ssid = json_string_value(json_object_get(root, "ssid"));
-    password = json_string_value(json_object_get(root, "password"));
     mqttBrokerIP = json_string_value(json_object_get(root, "mqttBrokerIP"));
     brokerusername = json_string_value(json_object_get(root, "brokerusername"));
     brokerpassword = json_string_value(json_object_get(root, "brokerpassword"));
@@ -130,6 +134,17 @@ bool readConfigFromJson()
     responseTopic = json_string_value(json_object_get(root, "responseTopic"));
     locationTopic = json_string_value(json_object_get(root, "locationTopic"));
     deviceTopic = json_string_value(json_object_get(root, "deviceTopic"));
+
+    if( last_brokerIP != mqttBrokerIP ||
+        last_brokerusername != brokerusername ||
+        last_brokerpassword != brokerpassword) {
+
+        printf("Broker Config has changed\n");        
+        last_brokerIP = mqttBrokerIP;
+        last_brokerusername = brokerusername;
+        last_brokerpassword = brokerpassword;
+        mqtt_changed = true;
+    }
 
     // Cleanup
     json_decref(root);

@@ -82,6 +82,13 @@
         margin: 20px 0;
         text-align: center;
     }
+
+    .copyright {
+        color: grey; /* Sets the color to grey */
+        font-size: 12px; /* Sets a small font size */
+        text-align: center; /* Centers the text */
+        margin-top: 20px; /* Adds some space above the copyright message */
+    }
 </style>
 
 <body>
@@ -89,16 +96,11 @@
     <h1>Pylontech Monitor Configuration</h1>
 
     <form id="mqttConfigForm" method="post" onsubmit="submitForm(); return false;">
-        <h2>WiFi Settings</h2>
-        <label for="ssid">SSID:</label><br>
-        <input type="text" id="ssid" name="ssid" required><br>
-
-        <label for="password">Password:</label><br>
-        <input type="text" id="password" name="password" required><br>
-
         <h2>MQTT Settings</h2>
         <label for="mqttBrokerIP">MQTT Broker IP:</label><br>
-        <input type="text" id="mqttBrokerIP" name="mqttBrokerIP" required><br>
+        <input type="text" id="mqttBrokerIP" name="mqttBrokerIP" required>
+        <div id="ipError" style="color: red;"></div>
+        <br>
 
         <label for="brokerusername">(optional) MQTT-Broker User Name:</label><br>
         <input type="text" id="brokerusername" name="brokerusername"><br>
@@ -119,9 +121,10 @@
         <input type="text" id="deviceTopic" name="deviceTopic" required><br>
 
         <input type="submit" value="SUBMIT">
+        <button type="button" id="cancelButton" style="background-color: #dc3545; color: white; padding: 10px 20px; margin-top: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;">CANCEL</button>
     </form>
     <div id="confirmationMessage"></div>
-
+    <p class="copyright">© by DJ0ABR</p>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     fetch('defaultdata.php')
@@ -132,8 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return response.json();
     })
     .then(data => {
-        document.getElementById('ssid').value = data.ssid || '';
-        document.getElementById('password').value = data.password || '';
         document.getElementById('mqttBrokerIP').value = data.mqttBrokerIP || '';
         document.getElementById('brokerusername').value = data.brokerusername || '';
         document.getElementById('brokerpassword').value = data.brokerpassword || '';
@@ -175,6 +176,27 @@ function submitForm() {
     xhr.send(formData);
 }
 
+// Function to validate IP address
+function validateIP(ip) {
+    var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipRegex.test(ip);
+}
+
+// Attaching the event listener to the input field
+document.getElementById('mqttBrokerIP').addEventListener('input', function() {
+    var ip = this.value;
+    if(validateIP(ip)) {
+        // If the IP is valid, you might want to hide or remove any error message
+        document.getElementById('ipError').textContent = ''; // Clears the error message
+    } else {
+        // If the IP is invalid, show an error message
+        document.getElementById('ipError').textContent = 'Enter a valid IP Address';
+    }
+});
+
+document.getElementById('cancelButton').addEventListener('click', function() {
+    window.location.href = 'index.html';
+});
 
 </script>
 

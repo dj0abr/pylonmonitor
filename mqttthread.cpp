@@ -8,16 +8,16 @@ this thread handles mqtt messages
 #include "fifo.h"
 #include "config.h"
 
+bool MQTTTHREAD::connected = false;
+
 MQTTTHREAD::MQTTTHREAD()
 {
-    while(!init()) {
-        sleep(2);
-        printf("retrying to connect to MQTT broker\n");
-    }
 }
 
 bool MQTTTHREAD::init()
 {
+    cleanup();
+
     getMQTTtopic();
     
     mosquitto_lib_init();
@@ -85,6 +85,7 @@ MQTTTHREAD::~MQTTTHREAD()
 void MQTTTHREAD::cleanup() 
 {
     if (mqttclient != nullptr) {
+        printf("MQTT cleanup\n");
         mosquitto_disconnect(mqttclient);
         mosquitto_loop_stop(mqttclient, true);
         mosquitto_destroy(mqttclient);
@@ -93,10 +94,16 @@ void MQTTTHREAD::cleanup()
     }
 }
 
+bool MQTTTHREAD::isConnected()
+{
+    return connected;
+}
+
 void MQTTTHREAD::on_connect(struct mosquitto *mosq, void *userdata, int result)
 {
     if (result == 0) {
         printf("connected to MQTT Broker\n");
+        connected = true;
 
 /*        printf("subscribe to topics\n");
         int ret = mosquitto_subscribe(mqttclient, NULL, topic.c_str(), QOS);
@@ -129,17 +136,7 @@ void MQTTTHREAD::on_message(struct mosquitto *mosq, void *userdata, const struct
 void MQTTTHREAD::on_disconnect(struct mosquitto *mosq, void *userdata, int rc)
 {
     printf("\nDisconnected from MQTT Broker. Reconnect ...\n");
-
-    sleep(1);   // do not overwhelm the broker in case of errors
-
-    while(true) {
-        int reconnect_result = mosquitto_reconnect_async(mosq);
-        if(reconnect_result == MOSQ_ERR_SUCCESS)
-            break;
-
-        printf("Reconnection attempt failed with code %d\n", reconnect_result);
-        sleep(2);
-    }
+    connected = false;
 }
 
 void MQTTTHREAD::publish()
@@ -149,7 +146,7 @@ void MQTTTHREAD::publish()
 
     bool dataavail = read_from_readbatt(topic, payload);
     if(dataavail) {
-        printf("MQTT publish <%s>,<%s>\n",topic.c_str(),payload.c_str());
+        //printf("MQTT publish <%s>,<%s>\n",topic.c_str(),payload.c_str());
         int ret = 0;
         if(payload.length() == 0)
             ret = mosquitto_publish(mqttclient, NULL, topic.c_str(), 0, NULL, 0, false);
@@ -157,7 +154,9 @@ void MQTTTHREAD::publish()
             ret = mosquitto_publish(mqttclient, NULL, topic.c_str(), payload.length(), payload.c_str(), 0, false);
         if (ret != MOSQ_ERR_SUCCESS)
         {
-            printf("Failed to publish message <%s>. Return code: %d\n", topic.c_str(), ret);
+            //printf("Failed to publish message <%s>. Return code: %d\n", topic.c_str(), ret);
+            connected = false;
+            return;
         }
     }
 }

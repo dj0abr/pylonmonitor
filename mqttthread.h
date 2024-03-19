@@ -12,6 +12,7 @@ public:
     ~MQTTTHREAD();
     bool init();
     void publish();
+    bool isConnected();
 
 private:
     static void on_connect(struct mosquitto *mosq, void *userdata, int result);
@@ -20,6 +21,7 @@ private:
     void cleanup();
     struct mosquitto *mqttclient = nullptr;
     int BROKER_PORT = 1883;
+    static bool connected;
 };
 
 #endif // _MQTTTHREAD_H_

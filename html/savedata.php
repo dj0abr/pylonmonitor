@@ -3,8 +3,6 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Prepare an array to store the incoming data
     $data = array(
-        "ssid" => $_POST['ssid'],
-        "password" => $_POST['password'],
         "mqttBrokerIP" => $_POST['mqttBrokerIP'],
         "brokerusername" => $_POST['brokerusername'],
         "brokerpassword" => $_POST['brokerpassword'],

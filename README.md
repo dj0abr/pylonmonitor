@@ -1,5 +1,7 @@
 # Pylontech Battery Monitor
 
+The Pylontech Battery Monitor is connected via a serial connection to the "Console" port of the master battery. It automatically detects the number of installed batteries and reads their values. The battery information is displayed on a local webpage and is also published to an MQTT broker. A setup page is used for MQTT configuration.
+
 ## Supported Hardware:
 Raspberry PI: recommended for lowest power consumption is the Raspberry PI Zero W,
 but any other SBC is also compatible.
