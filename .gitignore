@@ -1,4 +1,5 @@
 *.o
+*.d
 pylonmonitor
 .vscode
 settings.json
