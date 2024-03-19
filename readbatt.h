@@ -28,8 +28,6 @@ class READBATT
 public:
     READBATT();
 
-    string mqttTopic = "kmpub/Solaranlage/Pylontech Akku Monitor";
-
 private:
     void serial_printf(const char *format, ...);
     void batteryhandler_thread();

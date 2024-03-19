@@ -1,12 +1,25 @@
 # make clean ... delete all build files
 # make ... create the application
 
+CXX = g++
 CXXFLAGS = -Wall -O3 -std=c++0x -Wno-write-strings -Wno-narrowing
 LDFLAGS = -pthread -lpthread -lm -lmosquitto -ljansson
-OBJ = pylonmonitor.o readbatt.o fifo.o mqttthread.o serial.o identifySerUSB.o serial_helper.o kmfifo.o helper.o
+SRC = $(wildcard *.cpp)
+OBJ = $(SRC:.cpp=.o)
+DEP = $(OBJ:.o=.d)  # Add dependency files
 
-default: $(OBJ)
-	g++ $(CXXFLAGS) -o pylonmonitor $(OBJ) $(LDFLAGS)
+.PHONY: default clean
+
+default: pylonmonitor
+
+pylonmonitor: $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+-include $(DEP)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
 
 clean:
-	rm -rf *.o pylonmonitor
+	rm -rf $(OBJ) $(DEP) pylonmonitor
+

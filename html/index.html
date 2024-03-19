@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Pylontech Battery Information</title>
-    <style>
+
+<style>
     body {
         background-color: #000;
         color: #fff;
@@ -14,95 +15,134 @@
         flex-direction: column;
         align-items: center;
       }
-        .title { 
-            font-size: 48px; 
-            text-shadow: gray 4px 4px 4px; 
-            margin: 0px 50px; 
-            text-align: center;
-        }
-        .timecontainer {
-            text-align: center;
-            padding-left: 10px;
-            margin-top: 20px;
-            background-color: black;
-        }
-    
-        .table-container {
-            display: inline-block;
-            margin-right: 4px;
-            margin-top: 4px;
-            vertical-align: top;
-        }
-    
-        .battery-table {
-            border-collapse: collapse;
-        }
-    
-        .battery-table th,
-        .battery-table td {
-            border: 1px solid white;
-            padding: 4px;
-            text-align: center;
-            font-size: 16px; /* Increased font size for table cells */
-            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-        }
-    
-        .battery-table th {
-            background-color: #004000;
-            color: white;
-            font-weight: bold; /* Added font-weight to make the table headers bold */
-        }
-    
-        .battery-table tr:nth-child(2n) {
-            background-color: #343434;
-        }
-    
-        .battery-table tr:nth-child(2n+1) {
-            background-color: #101010;
-        }
-    
-        .cellinfo { 
-            font-family:verdana; font-size:16px; color:rgb(255, 255, 255); font-weight: bold; text-align:left;
-            margin-bottom: 10px;
-            margin-top: 10px;
-            text-align: center;
-        }
+.title { 
+    font-size: 48px; 
+    text-shadow: gray 4px 4px 4px; 
+    margin: 0px 50px; 
+    text-align: center;
+}
+.timecontainer {
+    text-align: center;
+    padding-left: 10px;
+    margin-top: 80px;
+    background-color: black;
+}
 
-        .gph {
-            background-color: #000000;
-            margin-bottom: 10px;
-            width: 100%;
-        }
+.table-container {
+    display: inline-block;
+    margin-right: 4px;
+    margin-top: 4px;
+    vertical-align: top;
+}
 
-        .gph-container {
-            margin-top: 20px;
-            text-align: center;
-        }
+.battery-table {
+    border-collapse: collapse;
+}
 
-        .mytitle {
-            text-align: center;
-            background-color: #404040;
-            font-family: "Helvetica", sans-serif;
-            font-size: 2.0vw;
-            font-weight: bold;
-            }
-    </style>
+.battery-table th,
+.battery-table td {
+    border: 1px solid white;
+    padding: 4px;
+    text-align: center;
+    font-size: 16px; /* Increased font size for table cells */
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+.battery-table th {
+    background-color: #004000;
+    color: white;
+    font-weight: bold; /* Added font-weight to make the table headers bold */
+}
+
+.battery-table tr:nth-child(2n) {
+    background-color: #343434;
+}
+
+.battery-table tr:nth-child(2n+1) {
+    background-color: #101010;
+}
+
+.cellinfo { 
+    font-family:verdana; font-size:16px; color:rgb(255, 255, 255); font-weight: bold; text-align:left;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.gph {
+    background-color: #000000;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.gph-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.mytitle {
+    text-align: center;
+    background-color: #404040;
+    font-family: "Helvetica", sans-serif;
+    font-size: 2.0vw;
+    font-weight: bold;
+}
+
+.sticky-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: black;
+    color: #fff;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.sticky-header::before {
+    content: '';
+    display: block;
+}
+
+.sticky-header > .mytitle {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.setup-button {
+    background-color: #404040;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    position: absolute;
+    right: 10px; /* Adjusts button position to the right */
+}
+
+
+</style>
 </head>
 <body>
-    
-    <div class="sticky-header" style="padding-bottom: 10px;">
+
+    <div class="sticky-header">
+        <!-- This spacer will take up as much space as the button but remain invisible -->
         <div id="mytitle" class="mytitle">Pylontech Battery Monitor</div>
+        <button class="setup-button" onclick="window.location.href='setup.html';">SETUP</button>
     </div>
-    <div class="timecontainer">
-        <div id="battery-container"></div> 
-    </div>
-    <div class="gph-container">
-        <div id="cellV" class="cellinfo"></div>
-        <canvas id="akkugph" class="gph"></canvas>
-        <div id="cellS" class="cellinfo"></div>
-        <canvas id="akkusoc" class="gph"></canvas>
-    </div>
+<div class="timecontainer">
+    <div id="battery-container"></div> 
+</div>
+<div class="gph-container">
+    <div id="cellV" class="cellinfo"></div>
+    <canvas id="akkugph" class="gph"></canvas>
+    <div id="cellS" class="cellinfo"></div>
+    <canvas id="akkusoc" class="gph"></canvas>
+</div>
 </body>
+
     
 <script>
     

@@ -62,6 +62,7 @@ web thread .... prepares the battery values for the webserver
 #include "readbatt.h"
 #include "mqttthread.h"
 #include "helper.h"
+#include "config.h"
 
 std::string myLocalIP;
 
@@ -87,6 +88,9 @@ int main(int argc, char *argv[])
 
     // copy index.html file
     copyFile();
+
+    // create default config, if it does not already exist
+    saveDefaultConfigToJson();
 
     // read the local IP address which is sent with an MQTT status message
     myLocalIP = std::string(ownIP());

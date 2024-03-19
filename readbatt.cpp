@@ -42,6 +42,7 @@ Battery Volt Curr Tempr Base State  Volt. State Curr. State Temp. State SOC  Cou
 #include <iostream>
 #include <jansson.h>
 #include "fifo.h"
+#include "config.h"
 
 READBATT::READBATT()
 {
@@ -322,7 +323,7 @@ void READBATT::publishBattdata()
     }
 
     // Publish the payload using your MQTT client
-    std::string topic = mqttTopic + "/values";
+    std::string topic = getMQTTtopic() + "/values";
     // You need to adapt this call to match how your MQTT client library in C/C++ sends messages
     send_to_mqtt(topic,string(payload));
     free(payload); // Free the serialized string
@@ -341,7 +342,7 @@ void READBATT::publishBattdata()
             json_decref(root);
             return;
         }
-        std::string topic = mqttTopic + "/current/" + std::to_string(battnum+1);
+        std::string topic = getMQTTtopic() + "/current/" + std::to_string(battnum+1);
         send_to_mqtt(topic,string(payload));
         free(payload);
         json_decref(root);
@@ -389,7 +390,7 @@ void READBATT::sendJson(int mode, char *name)
             json_decref(root);
             return;
         }
-        std::string topic = mqttTopic + "/" + name + "/" + std::to_string(battnum+1);
+        std::string topic = getMQTTtopic() + "/" + name + "/" + std::to_string(battnum+1);
         send_to_mqtt(topic,string(payload));
         free(payload);
         json_decref(root);

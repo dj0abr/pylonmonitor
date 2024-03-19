@@ -6,6 +6,7 @@ this thread handles mqtt messages
 #include <unistd.h>
 #include "mqttthread.h"
 #include "fifo.h"
+#include "config.h"
 
 MQTTTHREAD::MQTTTHREAD()
 {
@@ -17,39 +18,48 @@ MQTTTHREAD::MQTTTHREAD()
 
 bool MQTTTHREAD::init()
 {
+    getMQTTtopic();
+    
     mosquitto_lib_init();
     mqttclient = mosquitto_new("Pylonmonitor", true, NULL);
     if (!mqttclient)
     {
         printf("Failed to create MQTT client\n");
+        mqttclient = nullptr;
         return false;
     }
 
-/*
-    // activate this code if the broker required authentication
-    // Set username and password for authentication
-    const char* username = "your_username"; // Replace with your actual username
-    const char* password = "your_password"; // Replace with your actual password
-    int set_credentials = mosquitto_username_pw_set(mqttclient, username, password);
-    if (set_credentials != MOSQ_ERR_SUCCESS)
-    {
-        printf("Failed to set MQTT username and password\n");
-        mosquitto_destroy(mqttclient);
-        return false;
+    if(brokerusername.length() > 0) {
+        printf("set username and password\n");
+        // Set username and password for authentication
+        int set_credentials = mosquitto_username_pw_set(mqttclient, brokerusername.c_str(), brokerpassword.c_str());
+        if (set_credentials != MOSQ_ERR_SUCCESS)
+        {
+            printf("Failed to set MQTT username and password\n");
+            mosquitto_destroy(mqttclient);
+            mqttclient = nullptr;
+            return false;
+        }
     }
-*/
+
     // set callbacks
     mosquitto_connect_callback_set(mqttclient, MQTTTHREAD::on_connect);
     mosquitto_message_callback_set(mqttclient, MQTTTHREAD::on_message);
     mosquitto_disconnect_callback_set(mqttclient, MQTTTHREAD::on_disconnect);
 
     // connect to the MQTT broker
+    string BROKER_IP = "1.2.3.4";
+    if(mqttBrokerIP.length() >= 7) {
+        BROKER_IP = mqttBrokerIP;
+    }
+
     printf("connecting to Broker: %s:%d\n",BROKER_IP.c_str(), BROKER_PORT);
     int rc = mosquitto_connect(mqttclient, BROKER_IP.c_str(), BROKER_PORT, 20);
     if (rc != MOSQ_ERR_SUCCESS)
     {
         printf("Failed to connect to MQTT Broker: %s:%d, return code %d\n", BROKER_IP.c_str(), BROKER_PORT,rc);
         mosquitto_destroy(mqttclient);
+        mqttclient = nullptr;
         return false;
     }
     printf("connected to Broker: %s:%d\n",BROKER_IP.c_str(), BROKER_PORT);
@@ -61,6 +71,7 @@ bool MQTTTHREAD::init()
         printf("Failed to start MQTT network loop thread, return code %d\n", rc);
         mosquitto_disconnect(mqttclient);
         mosquitto_destroy(mqttclient);
+        mqttclient = nullptr;
         return false;
     }
     return true;
@@ -68,10 +79,18 @@ bool MQTTTHREAD::init()
 
 MQTTTHREAD::~MQTTTHREAD() 
 {
-    mosquitto_disconnect(mqttclient);
-    mosquitto_loop_stop(mqttclient, true);
-    mosquitto_destroy(mqttclient);
-    mosquitto_lib_cleanup();
+    cleanup();
+}
+
+void MQTTTHREAD::cleanup() 
+{
+    if (mqttclient != nullptr) {
+        mosquitto_disconnect(mqttclient);
+        mosquitto_loop_stop(mqttclient, true);
+        mosquitto_destroy(mqttclient);
+        mosquitto_lib_cleanup();
+        mqttclient = nullptr; // Set to nullptr after cleanup
+    }
 }
 
 void MQTTTHREAD::on_connect(struct mosquitto *mosq, void *userdata, int result)

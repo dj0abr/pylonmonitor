@@ -13,13 +13,12 @@ public:
     bool init();
     void publish();
 
-    string BROKER_IP = "192.168.10.89";
-
 private:
     static void on_connect(struct mosquitto *mosq, void *userdata, int result);
     static void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message);
     static void on_disconnect(struct mosquitto *mosq, void *userdata, int rc);
-    struct mosquitto *mqttclient;
+    void cleanup();
+    struct mosquitto *mqttclient = nullptr;
     int BROKER_PORT = 1883;
 };
 

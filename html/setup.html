@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pylontech Monitor</title>
+</head>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column; /* Ensures vertical stacking */
+        height: 100vh;
+    }
+
+    .form-container {
+        width: 100%;
+        max-width: 400px; /* Matches form width for alignment */
+        text-align: center; /* Centers the title */
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px; /* Adds space between the title and the form */
+    }
+
+    h2 {
+        color: #0a30ad;
+        margin-bottom: 20px; /* Adds space between the title and the form */
+    }
+
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        font-weight: bold;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin: 8px 0 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 18px; /* Increased font size for better readability */
+    }
+
+
+    input[type="submit"] {
+        background-color: #007BFF;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    #confirmationMessage {
+        display: none;
+        font-size: 20px;
+        font-weight: bold;
+        color: #28a745;
+        margin: 20px 0;
+        text-align: center;
+    }
+</style>
+
+<body>
+
+    <h1>Pylontech Monitor Configuration</h1>
+
+    <form id="mqttConfigForm" method="post" onsubmit="submitForm(); return false;">
+        <h2>WiFi Settings</h2>
+        <label for="ssid">SSID:</label><br>
+        <input type="text" id="ssid" name="ssid" required><br>
+
+        <label for="password">Password:</label><br>
+        <input type="text" id="password" name="password" required><br>
+
+        <h2>MQTT Settings</h2>
+        <label for="mqttBrokerIP">MQTT Broker IP:</label><br>
+        <input type="text" id="mqttBrokerIP" name="mqttBrokerIP" required><br>
+
+        <label for="brokerusername">(optional) MQTT-Broker User Name:</label><br>
+        <input type="text" id="brokerusername" name="brokerusername"><br>
+
+        <label for="brokerpassword">(optional) MQTT-Broker Password:</label><br>
+        <input type="text" id="brokerpassword" name="brokerpassword"><br>
+
+        <label for="publishTopic">Top Level Topic for Publishing:</label><br>
+        <input type="text" id="publishTopic" name="publishTopic" required><br>
+
+        <label for="responseTopic">Top Level Topic for Responses (currently not used):</label><br>
+        <input type="text" id="responseTopic" name="responseTopic" required><br>
+
+        <label for="locationTopic">Location Topic:</label><br>
+        <input type="text" id="locationTopic" name="locationTopic" required><br>
+
+        <label for="deviceTopic">Device Topic:</label><br>
+        <input type="text" id="deviceTopic" name="deviceTopic" required><br>
+
+        <input type="submit" value="SUBMIT">
+    </form>
+    <div id="confirmationMessage"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('defaultdata.php')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('ssid').value = data.ssid || '';
+        document.getElementById('password').value = data.password || '';
+        document.getElementById('mqttBrokerIP').value = data.mqttBrokerIP || '';
+        document.getElementById('brokerusername').value = data.brokerusername || '';
+        document.getElementById('brokerpassword').value = data.brokerpassword || '';
+        document.getElementById('publishTopic').value = data.publishTopic || '';
+        document.getElementById('responseTopic').value = data.responseTopic || '';
+        document.getElementById('locationTopic').value = data.locationTopic || '';
+        document.getElementById('deviceTopic').value = data.deviceTopic || '';
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
+});
+
+function submitForm() {
+    var formData = new FormData(document.getElementById('mqttConfigForm'));
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'savedata.php', true);
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            // Update the page to show confirmation message
+            var confirmationDiv = document.getElementById('confirmationMessage');
+            confirmationDiv.innerHTML = 'Data submitted successfully! Redirecting...';
+            confirmationDiv.style.display = 'block';
+            document.getElementById('mqttConfigForm').style.display = 'none';
+            
+            // Wait for 2 seconds before redirecting
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 3000);
+        } else {
+            // Update the page to show an error message
+            var confirmationDiv = document.getElementById('confirmationMessage');
+            confirmationDiv.innerHTML = 'Submission failed. Please try again.';
+            confirmationDiv.style.display = 'block';
+        }
+    };
+
+    xhr.send(formData);
+}
+
+
+</script>
+
+</body>
+</html>
