@@ -151,3 +151,9 @@ void copyFile()
     src.close();
     dst.close();
 }
+
+int unusedfunction()
+{
+    int a=1;
+    return a;
+}

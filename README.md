@@ -44,4 +44,22 @@ Refer to the autostart.txt file for instructions on setting up the software to s
 2. Click on "SETUP" in the top right corner of the web interface to configure network settings and MQTT.<br>
 3. Use tools like MQTT Explorer to verify that everything is working as expected
 
+## safe your SD card:
+This is applicable to Raspberry Pi OS (formerly Raspbian):
+
+This program saves its configuration on the SD card. Once correctly configured, it will not perform any further write operations to the SD card. Begin by setting up the program, configuring the MQTT settings, and if necessary, the network settings. Next, enable the Overlay File System by following these steps:
+
+1. Enter the Raspberry Pi configuration tool with: `sudo raspi-config`
+2. Navigate to: **Performance Options**
+3. Select **Overlay File System**: Enable the overlay file system and set the boot partition to read-only.
+4. Exit the configuration tool and reboot your Raspberry Pi.
+
+After these steps, no further data will be written to the SD card, significantly reducing the risk of SD card wear or corruption.
+
+## serial Interface and Connection:
+
+![serial Interface and Connection](pics/serpin.png)
+
+## Web Interface:
+
 ![Screenshot of Pylontech Battery Monitor](pics/screenshot.png)
