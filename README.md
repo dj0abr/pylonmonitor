@@ -23,7 +23,7 @@ Run the software with root privileges by executing `./pylonmonitor`.
 
 ## Raspi supporting WLAN (RPI3, 4 and Zero-W) need remapping of serial port:
 1. Disable serial login shell (important !!! Double check this step)<br>
-    Enter `sudo raspi-config` in the terminalbr>
+    Enter `sudo raspi-config` in the terminal<br>
     InterfaceOptions - Serial Port:<br>
     login shell: NO<br>
     hardware enabled: YES<br>
