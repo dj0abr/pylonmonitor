@@ -9,8 +9,10 @@ but any other SBC is also compatible.
 ## Connection:
 Connect the Console connector of the master battery to the primary serial interface of the Raspberry Pi using an RS-232 to TTL (3.3v) converter.
 
+![serial Interface and Connection](pics/serpin.png)
+
 ## Install required libraries:
-Run the script named prepare to install necessary libraries.
+Run the script named `prepare` to install necessary libraries.
 
 ## Build the software:
 make clean<br>
@@ -55,10 +57,6 @@ This program saves its configuration on the SD card. Once correctly configured, 
 4. Exit the configuration tool and reboot your Raspberry Pi.
 
 After these steps, no further data will be written to the SD card, significantly reducing the risk of SD card wear or corruption.
-
-## serial Interface and Connection:
-
-![serial Interface and Connection](pics/serpin.png)
 
 ## Web Interface:
 
