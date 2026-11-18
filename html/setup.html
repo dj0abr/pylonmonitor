@@ -89,6 +89,62 @@
         text-align: center; /* Centers the text */
         margin-top: 20px; /* Adds some space above the copyright message */
     }
+
+    .usb-device-list {
+        margin: 8px 0 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    .usb-device-list table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .usb-device-list th {
+        background: #f0f0f0;
+        padding: 6px 8px;
+        text-align: left;
+        font-size: 12px;
+        color: #555;
+        position: sticky;
+        top: 0;
+    }
+
+    .usb-device-list td {
+        padding: 6px 8px;
+        border-top: 1px solid #eee;
+        font-family: monospace;
+        word-break: break-all;
+    }
+
+    .usb-device-list tr:hover td {
+        background: #e8f0fe;
+        cursor: pointer;
+    }
+
+    .btn-scan {
+        background-color: #17a2b8;
+        color: white;
+        padding: 7px 14px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .btn-scan:hover { background-color: #117a8b; }
+
+    #usbScanStatus {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 4px;
+    }
 </style>
 
 <body>
@@ -120,6 +176,34 @@
         <label for="deviceTopic">Device Topic:</label><br>
         <input type="text" id="deviceTopic" name="deviceTopic" required><br>
 
+        <h2>Serial / USB Adapter</h2>
+
+        <p style="font-size:13px; color:#555; margin:0 0 10px;">
+            Leave both fields empty to use the onboard UART (<code>/dev/ttyAMA0</code>).
+            Fill them in to use a USB-Serial adapter identified by its hardware IDs.
+        </p>
+
+        <button type="button" class="btn-scan" onclick="scanDevices()">🔍 Scan for USB Serial Adapters</button>
+        <div id="usbScanStatus"></div>
+        <div id="usbDeviceList" class="usb-device-list" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Serial ID</th>
+                        <th>Vendor ID</th>
+                    </tr>
+                </thead>
+                <tbody id="usbDeviceRows"></tbody>
+            </table>
+        </div>
+
+        <label for="usbSerialID">USB Serial ID:</label><br>
+        <input type="text" id="usbSerialID" name="usbSerialID" placeholder="e.g. AB0KOTJ8 (leave empty for ttyAMA0)"><br>
+
+        <label for="usbVendorID">USB Vendor ID:</label><br>
+        <input type="text" id="usbVendorID" name="usbVendorID" placeholder="e.g. 0403"><br>
+
         <input type="submit" value="SUBMIT">
         <button type="button" id="cancelButton" style="background-color: #dc3545; color: white; padding: 10px 20px; margin-top: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;">CANCEL</button>
     </form>
@@ -142,6 +226,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('responseTopic').value = data.responseTopic || '';
         document.getElementById('locationTopic').value = data.locationTopic || '';
         document.getElementById('deviceTopic').value = data.deviceTopic || '';
+        document.getElementById('usbSerialID').value = data.usbSerialID || '';
+        document.getElementById('usbVendorID').value = data.usbVendorID || '';
     })
     .catch(error => {
         console.error('There was a problem with your fetch operation:', error);
@@ -197,6 +283,57 @@ document.getElementById('mqttBrokerIP').addEventListener('input', function() {
 document.getElementById('cancelButton').addEventListener('click', function() {
     window.location.href = 'index.html';
 });
+
+function scanDevices() {
+    var status = document.getElementById('usbScanStatus');
+    var listDiv = document.getElementById('usbDeviceList');
+    var tbody = document.getElementById('usbDeviceRows');
+
+    status.textContent = 'Scanning…';
+    listDiv.style.display = 'none';
+    tbody.innerHTML = '';
+
+    fetch('scandevices.php')
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(devices) {
+            if (devices.length === 0) {
+                status.textContent = 'No USB serial adapters found.';
+                return;
+            }
+            status.textContent = 'Click a row to use that adapter:';
+            devices.forEach(function(d) {
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + escHtml(d.device)   + '</td>' +
+                    '<td>' + escHtml(d.serial)   + '</td>' +
+                    '<td>' + escHtml(d.idVendor) + '</td>';
+                tr.addEventListener('click', function() {
+                    document.getElementById('usbSerialID').value = d.serial;
+                    document.getElementById('usbVendorID').value = d.idVendor;
+                    // Highlight selected row
+                    Array.from(tbody.rows).forEach(function(r) { r.style.background = ''; });
+                    tr.style.background = '#c8e6c9';
+                    status.textContent = 'Selected: ' + d.device;
+                });
+                tbody.appendChild(tr);
+            });
+            listDiv.style.display = 'block';
+        })
+        .catch(function(err) {
+            status.textContent = 'Scan failed: ' + err.message;
+        });
+}
+
+function escHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
 
 </script>
 
