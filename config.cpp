@@ -18,6 +18,8 @@ string publishTopic = "kmpub";
 string responseTopic = "kmcmd";
 string locationTopic = "Solaranlage";
 string deviceTopic = "Pylontech Akku Monitor";
+string usbSerialID = "";
+string usbVendorID = "";
 
 bool mqtt_changed = false;
 
@@ -52,6 +54,8 @@ bool saveDefaultConfigToJson()
     json_object_set_new(root, "responseTopic", json_string(responseTopic.c_str()));
     json_object_set_new(root, "locationTopic", json_string(locationTopic.c_str()));
     json_object_set_new(root, "deviceTopic", json_string(deviceTopic.c_str()));
+    json_object_set_new(root, "usbSerialID", json_string(usbSerialID.c_str()));
+    json_object_set_new(root, "usbVendorID", json_string(usbVendorID.c_str()));
     
     // Dump the JSON object to a string
     char *jsonString = json_dumps(root, JSON_INDENT(4));
@@ -143,6 +147,12 @@ bool readConfigFromJson()
     responseTopic = json_string_value(json_object_get(root, "responseTopic"));
     locationTopic = json_string_value(json_object_get(root, "locationTopic"));
     deviceTopic = json_string_value(json_object_get(root, "deviceTopic"));
+
+    json_t *usbSerial = json_object_get(root, "usbSerialID");
+    if (usbSerial) usbSerialID = json_string_value(usbSerial);
+
+    json_t *usbVendor = json_object_get(root, "usbVendorID");
+    if (usbVendor) usbVendorID = json_string_value(usbVendor);
 
     if( last_brokerIP != mqttBrokerIP ||
         last_brokerusername != brokerusername ||
